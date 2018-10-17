@@ -18,6 +18,22 @@ public:
     int i;
 };
 
+struct Level {
+    Level(int _index) : index(_index) {}
+    int index;
+
+    void Run()
+    {
+        cout << "Level index = " << index << endl;
+    }
+
+    inline bool operator<(const Level& level) const
+    {
+        // top is the largest
+        return (index < level.index);
+    }
+};
+
 int main()
 {
     cout << "==========simple value==========" << endl;
@@ -35,7 +51,7 @@ int main()
             cout << "tq1: " << tq1.getFront() << endl;
         }
 
-        TaskQueue< std::string > tq2;
+        TaskQueue< std::string, qFIFO > tq2;
         std::string s("string");
         tq2.emplace("123");
         tq2.emplace("abc");
@@ -66,6 +82,22 @@ int main()
             {
                 break;
             }
+        }
+    }
+
+    cout << "==========priority==========" << endl;
+    {
+        TaskQueue< Level, qPRIORITY > tq4;
+        tq4.emplace(Level(0));
+        tq4.emplace(Level(-1));
+        tq4.emplace(Level(2));
+        tq4.emplace(Level(-2));
+        tq4.emplace(Level(1));
+
+        while(!tq4.empty())
+        {
+            Level& level = tq4.getFront();
+            level.Run();
         }
     }
 

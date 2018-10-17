@@ -3,6 +3,9 @@
 
 #include "TaskQueue.h"
 
+#include <functional>
+#include <vector>
+
 class ThreadPool
 {
 public:

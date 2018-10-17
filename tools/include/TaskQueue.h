@@ -6,9 +6,8 @@
 #include <condition_variable>
 #include <atomic>
 #include <future>
-#include <functional>
-#include <vector>
 #include <queue>
+#include <type_traits>
 
 class BlockUnit
 {
@@ -111,6 +110,73 @@ public:
 private:
     bool stop;
     std::queue< T > tasks;
+};
+
+template< typename T >
+class TaskQueue< T, qPRIORITY > : public BlockUnit
+{
+public:
+    TaskQueue() : stop(false) {}
+
+    // getFront and empty are not thread safe
+    inline T getFront() // queue must not empty
+    {
+        T t = std::move(tasks.top());
+        tasks.pop();
+        return std::move(t);
+    }
+
+    inline bool empty()
+    {
+        return tasks.empty();
+    }
+
+    inline bool getFrontSafe(T& t)
+    {
+        std::lock_guard< std::mutex > lk(mtx);
+        if(!stop && !empty())
+        {
+            t = tasks.top();
+            tasks.pop();
+            return true;
+        }
+
+        return false;
+    }
+
+    inline void emplace(T& task)
+    {
+        std::lock_guard< std::mutex > lk(mtx);
+        if(!stop)
+        {
+            tasks.emplace(task);
+        }
+    }
+
+    inline void emplace(T&& task)
+    {
+        std::lock_guard< std::mutex > lk(mtx);
+        if(!stop)
+        {
+            tasks.emplace(std::move(task));
+        }
+    }
+
+    inline void clean()
+    {
+        std::lock_guard< std::mutex > lk(mtx);
+        tasks = std::priority_queue< T >();
+    }
+
+    inline void terminate()
+    {
+        std::lock_guard< std::mutex > lk(mtx);
+        stop = true;
+    }
+
+private:
+    bool stop;
+    std::priority_queue< T > tasks;
 };
 
 #endif // CXX_TOOLS_TASK_QUEUE_H
