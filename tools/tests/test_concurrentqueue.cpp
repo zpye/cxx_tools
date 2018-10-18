@@ -96,7 +96,7 @@ int main()
 
         while(!tq4.empty())
         {
-            Level& level = tq4.getFront();
+            Level level = tq4.getFront();
             level.Run();
         }
     }
