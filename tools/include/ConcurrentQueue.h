@@ -1,12 +1,11 @@
-#ifndef CXX_TOOLS_TASK_QUEUE_H
-#define CXX_TOOLS_TASK_QUEUE_H
+#ifndef CXX_TOOLS_CONCURRENT_QUEUE_H
+#define CXX_TOOLS_CONCURRENT_QUEUE_H
 
-#include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <atomic>
 #include <future>
 #include <queue>
+#include <chrono>
 #include <type_traits>
 
 class BlockUnit
@@ -20,6 +19,20 @@ public:
     inline void wait(std::unique_lock< std::mutex >& lk)
     {
         cond.wait(lk);
+    }
+
+    template< typename Rep, typename Period >
+    inline std::cv_status wait_for(std::unique_lock< std::mutex >& lk,
+           const std::chrono::duration< Rep, Period >& rel_time)
+    {
+        return cond.wait_for(lk, rel_time);
+    }
+
+    template< typename Clock, typename Duration >
+    inline std::cv_status wait_until(std::unique_lock< std::mutex >& lk, 
+           const std::chrono::time_point< Clock, Duration >& timeout_time)
+    {
+        return cond.wait_until(lk, timeout_time);
     }
 
     inline void notify_one()
@@ -37,19 +50,19 @@ protected:
     std::condition_variable cond;
 };
 
-enum TaskQueueType {
+enum ConcurrentQueueType {
     qFIFO,
     qPRIORITY
 };
 
-template< typename T, TaskQueueType = qFIFO >
-class TaskQueue {};
+template< typename T, ConcurrentQueueType = qFIFO >
+class ConcurrentQueue {};
 
 template< typename T >
-class TaskQueue< T, qFIFO > : public BlockUnit
+class ConcurrentQueue< T, qFIFO > : public BlockUnit
 {
 public:
-    TaskQueue() : stop(false) {}
+    ConcurrentQueue() : stop(false) {}
 
     // getFront and empty are not thread safe
     inline T getFront() // queue must not empty
@@ -113,17 +126,22 @@ private:
 };
 
 template< typename T >
-class TaskQueue< T, qPRIORITY > : public BlockUnit
+class ConcurrentQueue< T, qPRIORITY > : public BlockUnit
 {
 public:
-    TaskQueue() : stop(false) {}
+    ConcurrentQueue() : stop(false) {}
 
-    // getFront and empty are not thread safe
+    // getFront, Front and empty are not thread safe
     inline T getFront() // queue must not empty
     {
         T t = std::move(tasks.top());
         tasks.pop();
         return std::move(t);
+    }
+
+    inline const T& Front()
+    {
+        return tasks.top();
     }
 
     inline bool empty()
@@ -179,4 +197,4 @@ private:
     std::priority_queue< T > tasks;
 };
 
-#endif // CXX_TOOLS_TASK_QUEUE_H
+#endif // CXX_TOOLS_CONCURRENT_QUEUE_H

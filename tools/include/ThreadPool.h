@@ -1,8 +1,9 @@
 #ifndef CXX_TOOLS_THREAD_POOL_H
 #define CXX_TOOLS_THREAD_POOL_H
 
-#include "TaskQueue.h"
+#include "ConcurrentQueue.h"
 
+#include <thread>
 #include <functional>
 #include <vector>
 
@@ -79,7 +80,7 @@ public:
 
 private:
     bool stop;
-    TaskQueue< std::function< void() > > tq;
+    ConcurrentQueue< std::function< void() > > tq;
     std::vector< std::thread > threads;
 };
 

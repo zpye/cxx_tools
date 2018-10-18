@@ -1,4 +1,4 @@
-#include "TaskQueue.h"
+#include "ConcurrentQueue.h"
 
 #include <iostream>
 #include <string>
@@ -38,7 +38,7 @@ int main()
 {
     cout << "==========simple value==========" << endl;
     {
-        TaskQueue< int > tq1;
+        ConcurrentQueue< int > tq1;
         int i = 100;
         tq1.emplace(1);
         tq1.emplace(2);
@@ -51,7 +51,7 @@ int main()
             cout << "tq1: " << tq1.getFront() << endl;
         }
 
-        TaskQueue< std::string, qFIFO > tq2;
+        ConcurrentQueue< std::string, qFIFO > tq2;
         std::string s("string");
         tq2.emplace("123");
         tq2.emplace("abc");
@@ -65,7 +65,7 @@ int main()
 
     cout << "==========class==========" << endl;
     {
-        TaskQueue< Task > tq3;
+        ConcurrentQueue< Task > tq3;
         Task task(10);
         tq3.emplace(Task());
         tq3.emplace(task);
@@ -87,7 +87,7 @@ int main()
 
     cout << "==========priority==========" << endl;
     {
-        TaskQueue< Level, qPRIORITY > tq4;
+        ConcurrentQueue< Level, qPRIORITY > tq4;
         tq4.emplace(Level(0));
         tq4.emplace(Level(-1));
         tq4.emplace(Level(2));
