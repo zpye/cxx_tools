@@ -3,9 +3,7 @@
 
 #include "ThreadPool.h"
 
-#include <iostream>
 #include <type_traits>
-#include "type_traits.h"
 
 template< typename T >
 class Chain;
@@ -66,7 +64,7 @@ public:
 
     Chain& operator=(const Chain&) = delete;
 
-    std::future< R > Run(Args&&... args)
+    std::shared_future< R > Run(Args&&... args)
     {
         return (*mFunc)(std::forward< Args >(args)...);
     }
@@ -151,7 +149,7 @@ public:
     Chain(const Chain&) = delete;
     Chain& operator=(const Chain&) = delete;
 
-    std::future< void > Run(Args&&... args)
+    std::shared_future< void > Run(Args&&... args)
     {
         return (*mFunc)(std::forward< Args >(args)...);
     }

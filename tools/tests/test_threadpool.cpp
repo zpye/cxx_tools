@@ -53,6 +53,7 @@ int main()
         ThreadPool tp(1);
         tp.execute(thread_func3, ref(tp), 0);
         this_thread::sleep_for(chrono::milliseconds(100));
+        tp.terminate();
     }
 
     return 0;

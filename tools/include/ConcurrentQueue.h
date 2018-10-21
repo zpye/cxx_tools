@@ -80,7 +80,7 @@ public:
     inline bool getFrontSafe(T& t)
     {
         std::lock_guard< std::mutex > lk(mtx);
-        if(!stop && !empty())
+        if(!stop && !tasks.empty())
         {
             t = std::move(tasks.front());
             tasks.pop();
@@ -92,19 +92,25 @@ public:
 
     inline void emplace(T& task)
     {
-        std::lock_guard< std::mutex > lk(mtx);
         if(!stop)
         {
-            tasks.emplace(task);
+            std::lock_guard< std::mutex > lk(mtx);
+            if(!stop)
+            {
+                tasks.emplace(task);
+            }
         }
     }
 
     inline void emplace(T&& task)
     {
-        std::lock_guard< std::mutex > lk(mtx);
         if(!stop)
         {
-            tasks.emplace(std::move(task));
+            std::lock_guard< std::mutex > lk(mtx);
+            if(!stop)
+            {
+                tasks.emplace(std::move(task));
+            }
         }
     }
 
@@ -152,7 +158,7 @@ public:
     inline bool getFrontSafe(T& t)
     {
         std::lock_guard< std::mutex > lk(mtx);
-        if(!stop && !empty())
+        if(!stop && !tasks.empty())
         {
             t = tasks.top();
             tasks.pop();
@@ -164,19 +170,25 @@ public:
 
     inline void emplace(T& task)
     {
-        std::lock_guard< std::mutex > lk(mtx);
         if(!stop)
         {
-            tasks.emplace(task);
+            std::lock_guard< std::mutex > lk(mtx);
+            if(!stop)
+            {
+                tasks.emplace(task);
+            }
         }
     }
 
     inline void emplace(T&& task)
     {
-        std::lock_guard< std::mutex > lk(mtx);
         if(!stop)
         {
-            tasks.emplace(std::move(task));
+            std::lock_guard< std::mutex > lk(mtx);
+            if(!stop)
+            {
+                tasks.emplace(std::move(task));
+            }
         }
     }
 

@@ -18,7 +18,7 @@ public:
             threads.emplace_back(std::thread(
             [&]() {
                 std::unique_lock< std::mutex > lk(tq.getLock());
-                while(!stop)
+                while(true)
                 {
                     if(!tq.empty())
                     {
@@ -26,6 +26,10 @@ public:
                         lk.unlock();
                         task();
                         lk.lock();
+                    }
+                    else if(stop)
+                    {
+                        break;
                     }
                     else
                     {
@@ -41,21 +45,7 @@ public:
 
     ~ThreadPool()
     {
-        {
-            std::unique_lock< std::mutex > lk(tq.getLock());
-            stop = true;
-        }
-
-        tq.terminate();
-        tq.notify_all();
-
-        for(auto& t : threads)
-        {
-            if(t.joinable())
-            {
-                t.join();
-            }
-        }
+        terminate(true);
     }
 
     template< typename F, typename... Args >
@@ -71,6 +61,30 @@ public:
         tq.notify_one();
 
         return taskPtr->get_future();
+    }
+
+    void terminate(bool cleanQueue = false)
+    {
+        tq.terminate();
+        if(cleanQueue)
+        {
+            tq.clean();
+        }
+
+        {
+            std::unique_lock< std::mutex > lk(tq.getLock());
+            stop = true;
+        }
+
+        tq.notify_all();
+
+        for(auto& t : threads)
+        {
+            if(t.joinable())
+            {
+                t.join();
+            }
+        }
     }
 
     void clean()
