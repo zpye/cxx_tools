@@ -46,19 +46,21 @@ public:
 
     Chain< std::vector< R >() > All()
     {
-        return [this]() {
+        return Chain< std::vector< R >() >(
+        [this]() {
             std::vector< R > values;
             for(auto& sf : group)
             {
                 values.emplace_back(sf.get());
             }
             return values;
-        };
+        });
     }
 
     Chain< std::pair< size_t, R >() > Any()
     {
-        return [this]() {
+        return Chain< std::pair< size_t, R >() >(
+        [this]() {
             size_t size = group.size();
             while(true)
             {
@@ -71,7 +73,7 @@ public:
                     }
                 }
             }
-        };
+        });
     }
 
 private:
