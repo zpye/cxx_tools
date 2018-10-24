@@ -55,4 +55,15 @@ T* Singleton_v2< T >::inst = nullptr;
 template< typename T >
 std::once_flag Singleton_v2< T >::oc;
 
+// use macro
+#define TO_SINGLETON(className) \
+    public: \
+        className(const className&) = delete; \
+        className& operator=(const className&) = delete; \
+        static className& GetInstance() \
+        { static className inst; return inst; } \
+    protected: \
+        className() = default; \
+        ~className() = default; 
+
 #endif // CXX_TOOLS_SINGLETON_H

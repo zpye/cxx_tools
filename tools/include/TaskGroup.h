@@ -9,8 +9,6 @@
 
 #include <utility>
 
-#include <iostream>
-
 template< typename R >
 class TaskGroup
 {

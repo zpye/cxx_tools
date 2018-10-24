@@ -33,6 +33,11 @@ private:
     }
 };
 
+class D
+{
+    TO_SINGLETON(D)
+};
+
 int main()
 {
     cout << "==========Singleton==========" << endl;
@@ -53,6 +58,11 @@ int main()
         C& inst7 = C::GetInstance();
         cout << "&inst6: " << &inst6 << endl;
         cout << "&inst7: " << &inst7 << endl;
+
+        D& inst8 = D::GetInstance();
+        D& inst9 = D::GetInstance();
+        cout << "&inst8: " << &inst8 << endl;
+        cout << "&inst9: " << &inst9 << endl;
     }
 
     return 0;
