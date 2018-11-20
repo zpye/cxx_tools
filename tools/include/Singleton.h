@@ -45,8 +45,25 @@ protected:
     ~Singleton_v2() = default;
 
 private:
+    class GC
+    {
+    public:
+        ~GC()
+        {
+            // release singleton
+            if(inst != nullptr)
+            {
+                delete inst;
+                inst = nullptr;
+            }
+
+            cout << "GC deconstructor" << endl;
+        }
+    };
+
     static T* inst;
     static std::once_flag oc;
+    static GC gc;
 };
 
 template< typename T >
@@ -54,6 +71,9 @@ T* Singleton_v2< T >::inst = nullptr;
 
 template< typename T >
 std::once_flag Singleton_v2< T >::oc;
+
+template< typename T >
+typename Singleton_v2< T >::GC Singleton_v2< T >::gc;
 
 // use macro
 #define TO_SINGLETON(className) \

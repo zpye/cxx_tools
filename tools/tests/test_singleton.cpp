@@ -12,6 +12,10 @@ private:
     {
         cout << "constructor A(int i), i = " << i << endl;
     }
+    ~A()
+    {
+        cout << "deconstructor ~A()" << endl;
+    }
 };
 
 class B
@@ -20,6 +24,10 @@ public:
     B()
     {
         cout << "constructor B()" << endl;
+    }
+    ~B()
+    {
+        cout << "deconstructor ~B()" << endl;
     }
 };
 
@@ -30,6 +38,10 @@ private:
     C()
     {
         cout << "constructor C()" << endl;
+    }
+    ~C()
+    {
+        cout << "deconstructor ~C()" << endl;
     }
 };
 
