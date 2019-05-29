@@ -60,6 +60,10 @@ int main() {
 
     SharedPtr<void> sp2(sp1);
     sp1.Reset();
+
+    SharedPtr<int[]> sp3(new int[10]);
+    sp3[1] = 10;
+    cout << sp3[1] << endl;
   }
 
   return 0;

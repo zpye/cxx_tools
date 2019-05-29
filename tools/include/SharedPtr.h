@@ -97,17 +97,23 @@ class SharedPtr {
 
   Type* Get() const noexcept { return pointer; }
 
-  template <typename _T = T, std::enable_if_t<!std::is_void_v<_T>, int> = 0>
+  template <typename _T = T,
+            typename std::enable_if<!std::is_void<_T>::value, int>::type = 0>
   _T& operator*() const noexcept {
     return (*Get());
   }
 
-  template <typename _T = T, std::enable_if_t<!std::is_array_v<_T>, int> = 0>
+  template <typename _T = T,
+            typename std::enable_if<!std::is_array<_T>::value, int>::type = 0>
   _T* operator->() const noexcept {
     return Get();
   }
 
-  // TODO: add operator[]
+  template <typename _T = T,
+            typename std::enable_if<std::is_array<_T>::value, int>::type = 0>
+  typename std::remove_extent<_T>::type& operator[](int i) const noexcept {
+    return (*(pointer + i));
+  }
 
   void Swap(SharedPtr& sp) noexcept {
     std::swap(pointer, sp.pointer);
