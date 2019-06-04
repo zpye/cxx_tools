@@ -69,7 +69,7 @@ public:
     explicit SharedPtr(U* ptr) : ref_block(nullptr) {
     pointer = static_cast<Type*>(ptr);
     if (ptr != nullptr) {
-      SetRef(ptr, std::is_array<T>::type{});
+      SetRef(ptr, typename std::is_array<T>::type{});
     }
   }
 
