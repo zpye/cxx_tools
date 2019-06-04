@@ -11,7 +11,7 @@ class TestB {
     cout << "TestB() " << cnt << endl;
   }
 
-  virtual ~TestB() { cout << "~TestB() " << cnt << endl; }
+  ~TestB() { cout << "~TestB() " << cnt << endl; }
 
   virtual void Print() { cout << "B::Print()" << endl; }
 
@@ -27,7 +27,7 @@ class TestD : public TestB {
     cout << "TestD() " << cnt << endl;
   }
 
-  virtual ~TestD() { cout << "~TestD() " << cnt << endl; }
+  ~TestD() { cout << "~TestD() " << cnt << endl; }
 
   virtual void Print() override { cout << "D::Print()" << endl; }
 };
@@ -61,9 +61,12 @@ int main() {
     SharedPtr<void> sp2(sp1);
     sp1.Reset();
 
-    SharedPtr<int[]> sp3(new int[10]);
-    sp3[1] = 10;
-    cout << sp3[1] << endl;
+    SharedPtr<TestB> sp3(sp2);
+    sp2.Reset();
+
+    SharedPtr<int[]> sp4(new int[10]);
+    sp4[1] = 10;
+    cout << sp4[1] << endl;
   }
 
   return 0;

@@ -3,11 +3,12 @@
 
 #include <atomic>
 #include <mutex>
-#include <type_traits>
 #include <utility>
 
+#include "type_traits.h"
+
 class RefBlockBase {
- public:
+public:
   RefBlockBase() : usr_count(1) {}
 
   void IncCnt() { ++usr_count; }
@@ -19,51 +20,56 @@ class RefBlockBase {
     }
   }
 
- protected:
+protected:
   virtual void DeleteRef() = 0;
 
   virtual void DeleteThis() = 0;
 
- private:
+private:
   std::atomic_size_t usr_count;
 };
 
 template <typename T>
 class RefBlock : public RefBlockBase {
- public:
+public:
   explicit RefBlock(T* ptr) : ref_pointer(ptr) {}
 
- protected:
+protected:
   virtual void DeleteRef() override { delete ref_pointer; }
 
   virtual void DeleteThis() override { delete this; }
 
- private:
+private:
   T* ref_pointer;
 };
 
 template <typename T>
 class RefBlock<T[]> : public RefBlockBase {
- public:
+public:
   explicit RefBlock(T* ptr) : ref_pointer(ptr) {}
 
- protected:
+protected:
   virtual void DeleteRef() override { delete[] ref_pointer; }
 
   virtual void DeleteThis() override { delete this; }
 
- private:
+private:
   T* ref_pointer;
 };
 
 template <typename T>
 class SharedPtr {
- public:
+public:
   using Type = typename std::remove_extent<T>::type;
 
-  explicit SharedPtr(Type* ptr = nullptr) : pointer(ptr), ref_block(nullptr) {
+  SharedPtr() : pointer(nullptr), ref_block(nullptr) {}
+
+  template<typename U,
+    typename std::enable_if<is_convertible_ext<U, T>::value, int>::type = 0>
+    explicit SharedPtr(U* ptr) : ref_block(nullptr) {
+    pointer = static_cast<Type*>(ptr);
     if (ptr != nullptr) {
-      ref_block = new RefBlock<T>(ptr);
+      SetRef(ptr, std::is_array<T>::type{});
     }
   }
 
@@ -79,12 +85,12 @@ class SharedPtr {
   }
 
   template <typename U>
-  SharedPtr(SharedPtr<U>&& sp) {
+  SharedPtr(SharedPtr<U>&& sp) noexcept {
     this->MoveConstruct(std::move(sp));
   }
 
   template <typename U>
-  SharedPtr& operator=(SharedPtr<U>&& sp) {
+  SharedPtr& operator=(SharedPtr<U>&& sp) noexcept {
     SharedPtr(std::move(sp)).Swap(*this);
     return (*this);
   }
@@ -98,20 +104,20 @@ class SharedPtr {
   Type* Get() const noexcept { return pointer; }
 
   template <typename _T = T,
-            typename std::enable_if<!std::is_void<_T>::value, int>::type = 0>
-  _T& operator*() const noexcept {
+    typename std::enable_if<!std::is_void<_T>::value && !std::is_array<_T>::value, int>::type = 0>
+    typename std::remove_extent<_T>::type & operator*() const noexcept {
     return (*Get());
   }
 
   template <typename _T = T,
-            typename std::enable_if<!std::is_array<_T>::value, int>::type = 0>
-  _T* operator->() const noexcept {
+    typename std::enable_if<!std::is_void<_T>::value && !std::is_array<_T>::value, int>::type = 0>
+    _T * operator->() const noexcept {
     return Get();
   }
 
   template <typename _T = T,
-            typename std::enable_if<std::is_array<_T>::value, int>::type = 0>
-  typename std::remove_extent<_T>::type& operator[](int i) const noexcept {
+    typename std::enable_if<!std::is_void<_T>::value&& std::is_array<_T>::value, int>::type = 0>
+    typename std::remove_extent<_T>::type & operator[](int i) const noexcept {
     return (*(pointer + i));
   }
 
@@ -120,29 +126,42 @@ class SharedPtr {
     std::swap(ref_block, sp.ref_block);
   }
 
-  void Reset(Type* ptr = nullptr) { SharedPtr(ptr).Swap(*this); }
+  void Reset() noexcept { SharedPtr().Swap(*this); }
 
- private:
+  template<typename U>
+  void Reset(U* ptr) noexcept { SharedPtr(ptr).Swap(*this); }
+
+private:
+  template<typename U>
+  void SetRef(U* ptr, std::false_type) {
+    ref_block = new RefBlock<U>(ptr);
+  }
+
+  template<typename U>
+  void SetRef(U* ptr, std::true_type) {
+    ref_block = new RefBlock<U[]>(ptr);
+  }
+
   template <typename U>
   void CopyConstruct(const SharedPtr<U>& sp) {
     if (sp.ref_block) {
       sp.ref_block->IncCnt();
     }
 
-    this->pointer = sp.pointer;
+    this->pointer = static_cast<Type*>(sp.pointer);
     this->ref_block = sp.ref_block;
   }
 
   template <typename U>
-  void MoveConstruct(SharedPtr<U>&& sp) {
-    this->pointer = sp.pointer;
+  void MoveConstruct(SharedPtr<U>&& sp) noexcept {
+    this->pointer = static_cast<Type*>(sp.pointer);
     this->ref_block = sp.ref_block;
 
     sp.pointer = nullptr;
     sp.ref_block = nullptr;
   }
 
- private:
+private:
   Type* pointer;
   RefBlockBase* ref_block;
 
