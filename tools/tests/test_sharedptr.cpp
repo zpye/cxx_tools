@@ -46,6 +46,7 @@ int main() {
     SharedPtr<TestD[]> sp6(new TestD[5]);
 
     SharedPtr<TestB> sp7(new TestD);
+    SharedPtr<TestB> sp8(nullptr);
   }
 
   cout << "==========function==========" << endl;
@@ -61,7 +62,7 @@ int main() {
     SharedPtr<void> sp2(sp1);
     sp1.Reset();
 
-    SharedPtr<TestB> sp3(sp2);
+    SharedPtr<void> sp3(sp2);
     sp2.Reset();
 
     SharedPtr<int[]> sp4(new int[10]);
